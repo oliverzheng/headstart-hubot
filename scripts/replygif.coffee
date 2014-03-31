@@ -9,23 +9,23 @@ module.exports = (robot) ->
     replyMe msg, msg.match[3], (url) ->
       msg.send url
 
-  robot.hear /lol/i, (msg) ->
+  robot.hear /^lol$/i, (msg) ->
     replyMe msg, 'clapping,laugh', (url) ->
       msg.send url
 
-  robot.hear /okay/i, (msg) ->
+  robot.hear /^okay$/i, (msg) ->
     replyMe msg, 'okay', (url) ->
       msg.send url
 
-  robot.hear /no/i, (msg) ->
+  robot.hear /^no$/i, (msg) ->
     replyMe msg, 'no', (url) ->
       msg.send url
 
-  robot.hear /nope/i, (msg) ->
+  robot.hear /^nope$/i, (msg) ->
     replyMe msg, 'nope', (url) ->
       msg.send url
 
-  robot.hear /yes/i, (msg) ->
+  robot.hear /^yes$/i, (msg) ->
     replyMe msg, 'yes', (url) ->
       msg.send url
 
