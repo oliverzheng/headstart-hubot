@@ -1,41 +1,50 @@
 # Description:
-#   A way to interact with the ReplyGIF.net API.
+#   Makes ReplyGif easier to use. See http://replygif.net.
+#
+# Dependencies:
+#   "cheerio": ">= 0.9.2"
+#
+# Configuration:
+#   None
 #
 # Commands:
-#   hubot reply <query> - The Original. Queries ReplyGIF.net for a gif matching tag <query> and returns a random reply.
+#   hubot replygif <keyword> - Embeds random ReplyGif with the keyword.
+#   hubot replygif me <keyword> - Same as `hubot replygif <keyword>`.
+#
+# Notes:
+#   Modified for more entertainment.
+#
+# Author:
+#   sumeetjain, meatballhat
+
+cheerio = require 'cheerio'
 
 module.exports = (robot) ->
-  robot.respond /(reply)( me)? (.*)/i, (msg) ->
-    replyMe msg, msg.match[3], (url) ->
-      msg.send url
+  # Listen for a command to look up a ReplyGif by tag.
+  robot.respond /replygif( me)? (\D+)/i, (msg) ->
+    replyGifByTag(msg, msg.match[2])
 
   robot.hear /^lol$/i, (msg) ->
-    replyMe msg, 'clapping,laugh', (url) ->
-      msg.send url
+    replyGifByTag(msg, 'laugh')
 
-  robot.hear /^okay$/i, (msg) ->
-    replyMe msg, 'okay', (url) ->
-      msg.send url
+  robot.hear /^(\w+\s?\w+?)$/i, (msg) ->
+    replyGifByTag(msg, msg.match[1])
 
-  robot.hear /^no$/i, (msg) ->
-    replyMe msg, 'no', (url) ->
-      msg.send url
-
-  robot.hear /^nope$/i, (msg) ->
-    replyMe msg, 'nope', (url) ->
-      msg.send url
-
-  robot.hear /^yes$/i, (msg) ->
-    replyMe msg, 'yes', (url) ->
-      msg.send url
-
-replyMe = (msg, query, cb) ->
-  q = tag: query
-  msg.http('http://replygif.net/api/gifs?api-key=39YAprx5Yi')
-    .query(q)
+replyGifByTag = (msg, tag) ->
+  msg
+    .http("http://replygif.net/t/#{tagify(tag)}")
+    .header('User-Agent: ReplyGIF for Hubot (+https://github.com/github/hubot-scripts)')
     .get() (err, res, body) ->
-      images = JSON.parse(body)
-      if images?.length > 0
-        image  = msg.random images
-        cb "#{image.file}"
+      if not err and res.statusCode is 200
+        gifs = getGifs(body)
+        if !gifs or gifs.length == 0
+          return
+        msg.send msg.random gifs
 
+getGifs = (body) ->
+  $ = cheerio.load(body)
+  $('img.gif[src]').map (i, elem) ->
+    elem.attribs.src.replace(/thumbnail/, 'i')
+
+tagify = (s) ->
+  s.toLowerCase().replace(/\s+/g, '-').replace(/[^-a-z]/g, '')
